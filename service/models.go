@@ -6,8 +6,8 @@ import (
 )
 
 type post struct {
-	id      int
-	message string
+	Id      int    `json: id`
+	Message string `json: "message"`
 }
 
 func createPost(message string) {
@@ -25,15 +25,17 @@ func createPost(message string) {
 	}
 }
 
-func getPost(id int) *post {
+func getPost(id int) post {
 	conn := db_connect()
 
-	var node *post
-	err := conn.QueryRow(context.Background(), "select id, message from posts where id = $1", id).Scan(&node.id, &node.message)
+	var l_id int
+	var l_message string
+	err := conn.QueryRow(context.Background(), "select id, message from posts where id = $1", id).Scan(&l_id, &l_message)
 	conn.Close(context.Background())
 	if err != nil {
-		return node
+		panic(err)
 	}
 
-	return nil
+	node := post{Id: l_id, Message: l_message}
+	return node
 }
