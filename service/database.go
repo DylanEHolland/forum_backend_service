@@ -9,9 +9,6 @@ import (
 )
 
 func db_connect() *pgx.Conn {
-	/*
-
-	 */
 
 	db_uri := os.Getenv("DATABASE_URI")
 	conn, err := pgx.Connect(context.Background(), db_uri)

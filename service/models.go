@@ -6,8 +6,8 @@ import (
 )
 
 type post struct {
-	Id      int    `json: id`
-	Message string `json: "message"`
+	Id      int
+	Message string
 }
 
 func createPost(message string) {
