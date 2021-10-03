@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
+
+var mySigningKey = []byte("unicorns")
 
 func routes() {
 	rtr := mux.NewRouter()
@@ -19,7 +22,11 @@ func routes() {
 }
 
 func routeHomePage(w http.ResponseWriter, req *http.Request) {
-	fmt.Println(req.Header.Get("Content-type"))
+	user_id := readJwt(req.Header.Get("Authorization"))
+	if user_id > 0 {
+		fmt.Println("Found user:", userFromId(user_id).Username)
+	}
+
 	fmt.Fprintf(w, "{}")
 }
 
@@ -35,16 +42,72 @@ func loginSignUp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var response loginResponse
+
 	id := isUser(u.Username, u.Password)
 	if id != 0 {
 		/* Sign in */
-		fmt.Println("Signing in", id)
+		token := createJwt(id)
+		response.Token = token
+		fmt.Println("Signing in", token)
 	} else {
 		/* Sign up */
-		fmt.Println(createUser(u))
+		id := createUser(u)
+		token := createJwt(id)
+		response.Token = token
 	}
 
-	fmt.Fprintf(w, "{}")
+	response_json, err := json.Marshal(response)
+	if err == nil {
+		fmt.Printf("Error")
+	}
+
+	fmt.Fprintf(w, string(response_json))
+}
+
+func createJwt(id int) string {
+	claims := userAuth{
+		Id: id,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: 15000,
+			Issuer:    "Forum",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte("secureSecretText"))
+	if err != nil {
+		fmt.Println("Help")
+	}
+
+	return signedToken
+}
+
+func readJwt(jwt_token string) int {
+	fmt.Println(jwt_token)
+
+	token, err := jwt.ParseWithClaims(
+		jwt_token,
+		&userAuth{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte("secureSecretText"), nil
+		},
+	)
+
+	if err == nil {
+		fmt.Println("Error")
+	}
+
+	var id int
+	claims, ok := token.Claims.(*userAuth)
+	if !ok {
+		fmt.Println("Claims Error")
+		id = 0
+	} else {
+		id = claims.Id
+	}
+
+	return id
 }
 
 // func middleWare(h http.Handler) mux.MiddlewareFunc {

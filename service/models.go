@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type post struct {
@@ -16,6 +18,16 @@ type user struct {
 	Last     string `json:"last_name"`
 	Username string `json:"user_name"`
 	Password string `json:"pass_word"`
+}
+
+type userAuth struct {
+	Id int `json:"id"`
+	jwt.StandardClaims
+}
+
+type loginResponse struct {
+	Err   string `json:"error"`
+	Token string `json:"token"`
 }
 
 func createPost(message string) {
@@ -72,4 +84,16 @@ func createUser(u user) int {
 	}
 
 	return id
+}
+
+func userFromId(id int) user {
+	con := db_connect()
+
+	var u user
+	err := con.QueryRow(context.Background(), "select user_name from users where id = $1;", id).Scan(&u.Username)
+	if err != nil {
+		fmt.Println("Error in User: ", err, id)
+	}
+
+	return u
 }
