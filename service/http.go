@@ -84,8 +84,11 @@ func createJwt(id int) string {
 }
 
 func readJwt(jwt_token string) int {
-	fmt.Println(jwt_token)
+	if jwt_token == "undefined" {
+		return 0
+	}
 
+	var id int
 	token, err := jwt.ParseWithClaims(
 		jwt_token,
 		&userAuth{},
@@ -98,7 +101,6 @@ func readJwt(jwt_token string) int {
 		fmt.Println("Error")
 	}
 
-	var id int
 	claims, ok := token.Claims.(*userAuth)
 	if !ok {
 		fmt.Println("Claims Error")
@@ -109,12 +111,3 @@ func readJwt(jwt_token string) int {
 
 	return id
 }
-
-// func middleWare(h http.Handler) mux.MiddlewareFunc {
-// 	return func(h http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 			fmt.Println("this is a test")
-// 			h.ServeHTTP(w, r)
-// 		})
-// 	}
-// }

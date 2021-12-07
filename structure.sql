@@ -11,3 +11,9 @@ create table users (
     user_name text,
     pass_word text
 );
+
+create table posts (
+    id serial,
+    message text,
+    primary key(id)
+);
